@@ -8,7 +8,7 @@ torch==2.1.0
 ```
 本实验的数据是随机生成的4096条数据、模型只有一层dense层。在单机多卡（4 * A100-80G GPU）上进行的，当然也支持内存更小的多卡机器。本实验的代码结构简单，提供了注释，可读性强。
 
-## 开始
+## 快速开始
 1.利用pytorch提供的torch.multiprocessing 包启动多进程执行训练脚本
 ```
 python mp.py --max_epochs=2 --batch_size=32
@@ -63,3 +63,4 @@ torchrun 命令 等价于 python -m torch.distributed.launch --use-env
 torchrun 将'LOCAL_RANK'设置环境变量中，用户需要从`os.environ('LOCAL_RANK')`中取。
 
 
+## 进程通信
