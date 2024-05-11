@@ -52,12 +52,15 @@ class Trainer():
     
     def _run_epoch(self, epoch):
         batch_size = len(next(iter(self.train_dataloader))[0])
-        print(f"GPU:{self.gpu_id} | Epoch: {epoch} | Batchsize: {batch_size} | Steps: {len(self.train_dataloader)}")
         self.train_dataloader.sampler.set_epoch(epoch)
+        step = 0
         for x, y in self.train_dataloader:
             x = x.to(self.gpu_id)
             y = y.to(self.gpu_id)
             self._run_batch(x, y)
+            step+=1
+        print(f"GPU:{self.gpu_id} | Epoch: {epoch} | Batchsize: {batch_size} | Steps: {step}")
+
 
     def _run_batch(self, x, y):
         self.optimizer.zero_grad()

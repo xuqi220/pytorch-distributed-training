@@ -6,7 +6,7 @@
 ```
 torch==2.1.0
 ```
-本实验的数据是随机生成的小规模数据、模型只有一层dense层。在单机多卡（4 * A100-80G GPU）上进行的，当然也支持内存更小的多卡机器。本实验的代码结构简单，提供了注释，可读性强。
+本实验的数据是随机生成的4096条数据、模型只有一层dense层。在单机多卡（4 * A100-80G GPU）上进行的，当然也支持内存更小的多卡机器。本实验的代码结构简单，提供了注释，可读性强。
 
 ## 开始
 1.利pytorch提供的torch.multiprocessing 包启动多进程执行训练脚本
@@ -24,6 +24,9 @@ GPU:2 | Epoch: 1 | Batchsize: 32 | Steps: 32
 GPU:3 | Epoch: 1 | Batchsize: 32 | Steps: 32
 GPU:1 | Epoch: 1 | Batchsize: 32 | Steps: 32
 ```
+计算： 
+
+Batchsize\*step\*GPU_NUM = 32\*32\*4 = 4096
 
 
 
