@@ -1,2 +1,30 @@
-# pytorch-distributed-training
-Pytorch 分布式训练学习笔记
+# 分布式训练
+该仓库记录基于pytorch的分布式训练学习笔记。
+
+## 环境
+
+```
+torch==2.1.0
+```
+本实验的数据是随机生成的小规模数据、模型只有一层dense层。在单机多卡（4 * A100-80G GPU）上进行的，当然也支持内存更小的多卡机器。本实验的代码结构简单，提供了注释，可读性强。
+
+## 开始
+1. 利pytorch提供的torch.multiprocessing 包启动多进程执行训练脚本
+```
+python mp.py --max_epochs=2 --batch_size=32
+
+
+[W socket.cpp:663] [c10d] The client socket has failed to connect to [localhost]:12345 (errno: 101 - Network is unreachable).
+GPU_Count: 4
+GPU:0 | Epoch: 0 | Batchsize: 32 | Steps: 32
+GPU:2 | Epoch: 0 | Batchsize: 32 | Steps: 32
+GPU:1 | Epoch: 0 | Batchsize: 32 | Steps: 32
+GPU:3 | Epoch: 0 | Batchsize: 32 | Steps: 32
+GPU:0 | Epoch: 1 | Batchsize: 32 | Steps: 32
+GPU:2 | Epoch: 1 | Batchsize: 32 | Steps: 32
+GPU:3 | Epoch: 1 | Batchsize: 32 | Steps: 32
+GPU:1 | Epoch: 1 | Batchsize: 32 | Steps: 32
+```
+
+
+
