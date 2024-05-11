@@ -1,2 +1,2 @@
 # pytorch-distributed-training
-Distributed Training Learning
+Pytorch 分布式训练学习笔记
