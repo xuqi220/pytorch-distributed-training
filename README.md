@@ -57,8 +57,6 @@ GPU:2 | Epoch: 1 | Batchsize: 32 | Steps: 32
 GPU:1 | Epoch: 1 | Batchsize: 32 | Steps: 32
 GPU:3 | Epoch: 1 | Batchsize: 32 | Steps: 32
 ```
-
-
 torchrun 命令 等价于 python -m torch.distributed.launch --use-env
 
 torchrun 将'LOCAL_RANK'设置环境变量中，用户需要从`os.environ('LOCAL_RANK')`中取。
