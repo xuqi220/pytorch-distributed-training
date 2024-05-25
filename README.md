@@ -68,8 +68,15 @@ torchrun 将'LOCAL_RANK'设置环境变量中，用户需要从`os.environ('LOCA
 `ddp_communication_intro.py`
 * dist.send() # 向指定设备发送tensor
 * dist.recv() # 接收指定设备发送的tensor
-* dist.all_reduce() # 
+* dist.all_reduce() # 将所有的设备上的值按照指定的操作（求和、均值等）聚合,并分发到所有设备上
 
-`ddp_communication.py`
+`torchrun --nproc-per-node=2 ddp_communication.py`
+* dist_scatter() # 将某设备上的多个值分发到值分发到多个设备
+* dist_gather() # 将多个设备上的值汇聚到指定设备
+* dist_broadcast() # 将某设备上的值复制到多个设备
+* dist_reduce() # 将所有的设备上的值按照指定的操作（求和、均值）聚合到指定设备上
+* dist_all_reduce() #reduce + broacaset
+* dist_all_gather() #gather + broacaset
+* dist_reduce_scatter() # reduce + scatter
 
 ## 自动混合精度（AMP）

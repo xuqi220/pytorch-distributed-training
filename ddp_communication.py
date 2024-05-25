@@ -112,9 +112,9 @@ def main():
     # dist_gather() # 将多个设备上的值汇聚到指定设备
     # dist_broadcast() # 将某设备上的值复制到多个设备
     # dist_reduce() # 将所有的设备上的值按照指定的操作（求和、均值）聚合
-    # dist_all_reduce() #reduce + broacaset
+    dist_all_reduce() #reduce + broacaset
     # dist_all_gather() #gather + broacaset
-    dist_reduce_scatter() # reduce + scatter
+    # dist_reduce_scatter() # reduce + scatter
 
 
 
