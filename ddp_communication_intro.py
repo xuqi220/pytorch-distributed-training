@@ -17,7 +17,7 @@ def run_0(rank, world_size):
     time.sleep(2)
     print(rank, world_size)
 
-# point 2 point communication
+# point 2 point communication （点到点通信）
 def run_1(rank, world_size):
     torch.cuda.set_device(rank)
     # 每个设备初始化一个值为0的tensor
@@ -34,7 +34,7 @@ def run_1(rank, world_size):
         # 1 号设备收到了来自 0 号设备的值
         print(f"data {tensor_hold} from rank: {rank} ")
 
-# collective communication
+# collective communication （组通信）
 def run_2(rank, world_size):
     group = dist.new_group([0,1])
     if rank==0:
