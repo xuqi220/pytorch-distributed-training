@@ -66,6 +66,9 @@ torchrun 将'LOCAL_RANK'设置环境变量中，用户需要从`os.environ('LOCA
 ## 进程通信
 
 `ddp_communication_intro.py`
+* dist.send() # 向指定设备发送tensor
+* dist.recv() # 接收指定设备发送的tensor
+* dist.all_reduce() # 
 
 `ddp_communication.py`
 
