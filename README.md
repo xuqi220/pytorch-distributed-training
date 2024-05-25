@@ -65,5 +65,8 @@ torchrun 将'LOCAL_RANK'设置环境变量中，用户需要从`os.environ('LOCA
 
 ## 进程通信
 
+`ddp_communication_intro.py`
+
+`ddp_communication.py`
 
 ## 自动混合精度（AMP）
