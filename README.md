@@ -80,3 +80,5 @@ torchrun 将'LOCAL_RANK'设置环境变量中，用户需要从`os.environ('LOCA
 * dist_reduce_scatter() # reduce + scatter
 
 ## 自动混合精度（AMP）
+https://pytorch.org/tutorials/recipes/recipes/amp_recipe.html
+https://pytorch.org/docs/stable/notes/amp_examples.html
