@@ -1,5 +1,5 @@
 # 分布式训练
-该仓库记录基于pytorch提供的DDP以及DeepSpeed的分布式训练的学习笔记
+该仓库记录基于pytorch提供的DDP的分布式训练的学习笔记；基于DeepSpeed微调大模型的实战项目请参考[QLaw](https://github.com/welchxu/QLaw)
 
 ## 环境
 
