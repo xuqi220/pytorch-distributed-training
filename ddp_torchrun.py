@@ -11,9 +11,10 @@ import torch.multiprocessing as mp
 
 # ddp setup
 def ddp_setup():
+    # print(os.environ) torchrun 已经将LOCAL_RANK WORLD_SIZE 参数设置在了环境变量里面
     # 初始化进程组
-    init_process_group(backend='nccl')
-    torch.cuda.set_device(int(os.environ['LOCAL_RANK']))
+    init_process_group(backend='nccl') # 采用默认初始化方式（从环境变量获取LOCAL_RANK WORLD_SIZE等参数）
+    torch.cuda.set_device(int(os.environ['LOCAL_RANK'])) # 设置当前进程使用的设备编号
 
 # 随机生成数据集
 class MyDataset(Dataset):
@@ -35,7 +36,7 @@ class Trainer():
                  optimizer: torch.optim.Optimizer):
         # torchrun会自动将当前进程号放到os环境变量中，用户直接获取即可
         self.gpu_id = int(os.environ['LOCAL_RANK'])
-        self.model = model.to(self.gpu_id)
+        self.model = model.to(self.gpu_id) # 将模型迁移到当前进程占用的设备上
         self.train_dataloader = train_dataloader
         self.optimizer = optimizer
         # 用ddp包装模型
@@ -47,7 +48,7 @@ class Trainer():
     
     def _run_epoch(self, epoch):
         batch_size = len(next(iter(self.train_dataloader))[0])
-        self.train_dataloader.sampler.set_epoch(epoch)
+        self.train_dataloader.sampler.set_epoch(epoch) # 重新设置采样器的状态，以便重新对数据集进行划分
         step=0
         for x, y in self.train_dataloader:
             x = x.to(self.gpu_id)
@@ -66,10 +67,10 @@ class Trainer():
 
 def main(max_epochs:int, batch_size:int):
     ddp_setup()
-    if int(os.environ['LOCAL_RANK'])==0:# 在0号进程上打印信息
-        print(f"GPU_Count: {torch.cuda.device_count()}")
+    if int(os.environ['LOCAL_RANK'])==0:# 仅在0号进程上打印信息
+        print(f"GPU_NUM: {torch.cuda.device_count()}")
     train_dataset = MyDataset(4096)
-    # 分布式训练需要将数据划分（无重复）到不同的设备上，DistributedSampler自动帮我们完成
+    # 分布式训练需要将数据（无重复）划分到不同的设备上，DistributedSampler自动帮我们完成
     td = DistributedSampler(train_dataset)
     train_dataloader = DataLoader(train_dataset, 
                                   batch_size=batch_size,
