@@ -70,7 +70,7 @@ Batchsize\*step\*GPU_NUM = 32\*32\*4 = 4096
 ## torchrun or launch
 利用pytorch提供的torchrun 或 torch.distributed.launch 启动多进程执行训练脚本
 ```
-torchrun --nproc-per-node=4 ddo_torchrun.py --max_epoch=2 --batch_size=32
+torchrun --nproc-per-node=4 ddp_torchrun.py --max_epoch=2 --batch_size=32
 
 GPU_Count: 4
 GPU:2 | Epoch: 0 | Batchsize: 32 | Steps: 32
@@ -84,7 +84,7 @@ GPU:0 | Epoch: 1 | Batchsize: 32 | Steps: 32
 
 *****************************************
 
-python -m torch.distributed.launch --use-env --nproc-per-node=4 start_with_torchrun.py --max_epoch=2 --batch_size=32
+python -m torch.distributed.launch --use-env --nproc-per-node=4 ddp_torchrun.py --max_epoch=2 --batch_size=32
 
 GPU_Count: 4
 GPU:0 | Epoch: 0 | Batchsize: 32 | Steps: 32
