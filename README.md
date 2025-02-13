@@ -271,7 +271,9 @@ DeepSpeed分布式训练实践请移步[法律大模型QLaw](https://github.com/
 
 # 参考：
 https://huggingface.co/blog/accelerate-deepspeed
+
 https://www.deepspeed.ai/getting-started/
+
 https://deepspeed.readthedocs.io/en/latest/initialize.html
 
 <!-- # 自动混合精度训练
