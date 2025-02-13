@@ -121,6 +121,8 @@ torchrun 命令 等价于 python -m torch.distributed.launch --use-env
 
 torchrun 将'LOCAL_RANK'设置环境变量中，用户需要从`os.environ('LOCAL_RANK')`中取。
 
+Pytorch分布式实践请移步[GPT2复现](https://github.com/xuqi220/GPT2)
+
 ## Deepspeed
 pytorch提供的分布式计算可以有效利用多GPU资源，但是还是不够高效，由于模型在训练过程中会消耗大量的资源。以Transformer为例模型训练过程内存的占用来自哪里呢：
 
@@ -264,6 +266,8 @@ pytorch的DDP在每个GPU上都保存了完整的上述数据，这就造成了�
     可以想象stage-0的通信需求最小、Stage-3通信需求最大。
 
 至此，对于DeepSpeed分布式训练基础已经介绍完了，主要涉及了DeepSpeed如何包装模型，如何启动。模型的`Forward()`和`backward()`和`step()`DeepSpeed也提供了相应的接口`outputs = model_engine(input_ids, labels=labels)`、`model_engine.backward(outputs.loss)`、`model_engine.step()` DeepSpeed是非常简单优雅的分布式训练工具,除了上述的分布式训练策略外还有`offload`策略充分利用内存和硬盘。
+
+DeepSpeed分布式实践请移步[法律大模型QLaw](https://github.com/xuqi220/QLaw)
 
 # 参考：
 https://huggingface.co/blog/accelerate-deepspeed
