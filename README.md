@@ -4,7 +4,7 @@
 ## 项目结构
 
 * 进程通信基础：**communication_intro.py**,**communication.py** 
-* pytorch分布式训练
+* Pytorch分布式训练
   
   **ddp_mp.py** :利用torch.multiprocessing包提供的功能启动分布式训练
   
@@ -48,7 +48,7 @@ deepspeed==0.16.3
 
 当使用`torchrun`命令启动分布式训练时,上述参数会自动的被设置在环境变量`os.environ`中，`init_process_group()`函数参数`init_method="env://"`默认采用从环境变量中获取。具体实践代码在文件`ddp_torchrun.py`
 
-**分布式训练一定要记住你写的每一行代码是在多个进程中都要跑一遍的，有些需要同步的数据（例如梯度）pytorch已经帮我们做了，有些操作同步操作需要我们自己做！！！**
+**分布式训练一定要记住你写的每一行代码是在多个进程中都要跑一遍的，有些需要同步的数据（例如梯度）Pytorch已经帮我们做了，有些操作同步操作需要我们自己做！！！**
 
 ## 进程通信
 
@@ -69,7 +69,7 @@ deepspeed==0.16.3
 ## Pytorch分布式
 
 ###  MP
-利用pytorch提供的torch.multiprocessing 包启动多进程执行训练脚本
+利用Pytorch提供的torch.multiprocessing 包启动多进程执行训练脚本
 ```bash
 python ddp_mp.py --max_epochs=2 --batch_size=32
 
@@ -89,7 +89,7 @@ GPU:1 | Epoch: 1 | Batchsize: 32 | Steps: 32
 Batchsize\*step\*GPU_NUM = 32\*32\*4 = 4096
 
 ### torchrun or launch
-利用pytorch提供的torchrun 或 torch.distributed.launch 启动多进程执行训练脚本
+利用Pytorch提供的torchrun 或 torch.distributed.launch 启动多进程执行训练脚本
 ```bash
 torchrun --nproc-per-node=4 ddp_torchrun.py --max_epoch=2 --batch_size=32
 
@@ -124,7 +124,7 @@ torchrun 将'LOCAL_RANK'设置环境变量中，用户需要从`os.environ('LOCA
 Pytorch分布式训练实践请移步[GPT2复现](https://github.com/xuqi220/GPT2)
 
 ## Deepspeed
-pytorch提供的分布式计算可以有效利用多GPU资源，但是还是不够高效，由于模型在训练过程中会消耗大量的资源。以Transformer为例模型训练过程内存的占用来自哪里呢：
+Pytorch提供的分布式计算可以有效利用多GPU资源，但是还是不够高效，由于模型在训练过程中会消耗大量的资源。以Transformer为例模型训练过程内存的占用来自哪里呢：
 
 1. **模型参数**：存储Transformer的Embedding矩阵、Q、K、V矩阵等等。
 2. **优化器**：一些效果较好的优化器例如`Adam`会为存储模型参数状态。
@@ -134,14 +134,14 @@ pytorch提供的分布式计算可以有效利用多GPU资源，但是还是不�
 3. **梯度**：需要为模型每个参数存储梯度值
 4. **中间过程值**：在前向过程中需要存储中间过程值，例如相关性分数矩阵、Decoder Layer之间的输入于输出等。
 
-pytorch的DDP在每个GPU上都保存了完整的上述数据，这就造成了冗余，Deepspeed就是针对1、2、3来进行优化的。
+Pytorch的DDP在每个GPU上都保存了完整的上述数据，这就造成了冗余，Deepspeed就是针对1、2、3来进行优化的。
     
 <img src="./assets/ds_mem.png" style="width:450px">
 
 下面我们以Qwen2-1.5B模型为例在1 node*2 V100 32G GPUs上进行实验。
 
 ### DeepSpeed基础
-当使用PyTorch提供的`DistributedDataParallel`接口时我们首先需要初始化进程组`init_process_group()`并利用`torch.multiprocessing`或者`torchrun`等启动命令生成多个进程。然而deepspeed利用`deepspeed.initialize`直接对模型包装，后续所有进程组环境设置、内存优化处理交给deepspeed即可。
+当使用Pytorch提供的`DistributedDataParallel`接口时我们首先需要初始化进程组`init_process_group()`并利用`torch.multiprocessing`或者`torchrun`等启动命令生成多个进程。然而deepspeed利用`deepspeed.initialize`直接对模型包装，后续所有进程组环境设置、内存优化处理交给deepspeed即可。
 * Stage-0
 
     ```python
@@ -184,7 +184,7 @@ pytorch的DDP在每个GPU上都保存了完整的上述数据，这就造成了�
     Device 0 | ZeRO Stage: 0 | Optimizer: lr=5e-05 | betas=(0.9, 0.999) | eps=1e-08 | parameter count=1543714304
     Device 1 | ZeRO Stage: 0 | Optimizer: lr=5e-05 | betas=(0.9, 0.999) | eps=1e-08 | parameter count=1543714304
     ```
-    Stage-0和pytorch的DDP分布式训练接口没有区别。
+    Stage-0和Pytorch的DDP分布式训练接口没有区别。
 * **Stage-1**
     
     将上述代码中的`stage_0_config`替换为`stage_1_config`
