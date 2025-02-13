@@ -122,12 +122,149 @@ torchrun 命令 等价于 python -m torch.distributed.launch --use-env
 torchrun 将'LOCAL_RANK'设置环境变量中，用户需要从`os.environ('LOCAL_RANK')`中取。
 
 ## Deepspeed
+pytorch提供的分布式计算可以有效利用多GPU资源，但是还是不够高效，由于模型在训练过程中会消耗大量的资源。以Transformer为例模型训练过程内存的占用来自哪里呢：
 
+1. **模型参数**：存储Transformer的Embedding矩阵、Q、K、V矩阵等等。
+2. **优化器**：一些效果较好的优化器例如`Adam`会为存储模型参数状态。
+   
+    <img src="./assets/optimizer_mem.png" style="width:450px">
 
+3. **梯度**：需要为模型每个参数存储梯度值
+4. **中间过程值**：在前向过程中需要存储中间过程值，例如相关性分数矩阵、Decoder Layer之间的输入于输出等。
 
+pytorch的DDP在每个GPU上都保存了完整的上述数据，这就造成了冗余，Deepspeed就是针对1、2、3来进行优化的。
+    
+<img src="./assets/ds_mem.png" style="width:450px">
+
+### DeepSpeed基础
+当使用PyTorch提供的`DistributedDataParallel`接口时我们首先需要初始化进程组`init_process_group()`并利用`torch.multiprocessing`或者`torchrun`等启动命令生成多个进程。然而deepspeed利用`deepspeed.initialize`直接对模型包装，后续所有进程组环境设置、内存优化处理交给deepspeed即可。下面我们以Qwen2-1.5B模型为例在1 node*2 V100 32G GPUs上进行实验。
+* Stage-0
+
+    ```python
+    import os
+    import json
+    import torch
+    import deepspeed
+    import transformers
+    from transformers import AutoModel, AutoTokenizer
+
+    model_path = "modelfiles/qwen2-1.5b" # Huggingface 模型文件
+    model = AutoModel.from_pretrained(model_path)
+
+    stage_0_config = {
+        "train_micro_batch_size_per_gpu": 1, # 每张GPU的batch size配置
+        "optimizer": { # 优化器配置
+            "type": "Adam",
+            "params": {
+                "lr": 5e-5
+            }
+        }
+    }
+
+    model_engine, optimizer, _, _ = deepspeed.initialize( # 包装模型
+        model=model,
+        model_parameters=model.parameters(),
+        config=stage_0_config
+    )
+
+    # 打印当前进程 和 deepspeed stage
+    optimizer_state = optimizer.param_groups[0]
+    print(f"Device {os.environ['LOCAL_RANK']} | ZeRO Stage: {model_engine.zero_optimization_stage()} | Optimizer: lr={optimizer_state['lr']} | betas={optimizer_state['betas']} | eps={optimizer_state['eps']} | parameter count={sum([torch.numel(p) for p in optimizer_state['params']])}")
+    ```
+    `deepspeed`命令行启动
+    ```bash
+    CUDA_VISIBLE_DEVICES=0,1 deepspeed stage_0.py
+    ```
+    输出：
+    ```
+    Device 0 | ZeRO Stage: 0 | Optimizer: lr=5e-05 | betas=(0.9, 0.999) | eps=1e-08 | parameter count=1543714304
+    Device 1 | ZeRO Stage: 0 | Optimizer: lr=5e-05 | betas=(0.9, 0.999) | eps=1e-08 | parameter count=1543714304
+    ```
+    Stage-0和pytorch的DDP分布式训练接口没有区别。
+* **Stage-1**
+    
+    将上述代码中的`stage_0_config`替换为`stage_1_config`
+    ```python
+    stage_1_config = {
+        "train_micro_batch_size_per_gpu": 1,
+        "optimizer": {
+            "type": "Adam",
+            "params": {
+                "lr": 5e-5
+            }
+        },
+        "zero_optimization": {
+            "stage": 1,
+        }
+    }
+    ```
+  
+    `deepspeed`命令行启动
+    ```bash
+    CUDA_VISIBLE_DEVICES=0,1 deepspeed stage_1.py
+    ```
+    输出：
+    ```
+    Device 1 | ZeRO Stage: 1 | Optimizer: lr=5e-05 | betas=(0.9, 0.999) | eps=1e-08 | parameter count=771857152
+    Device 0 | ZeRO Stage: 1 | Optimizer: lr=5e-05 | betas=(0.9, 0.999) | eps=1e-08 | parameter count=771857152
+    ```
+    两次输出的 `parameter count`发现stage_1比stage_0减少了一半，说明optimizer维护的parameter减少了一半，因为我们用了两块GPU
+* **Stage-2 Stage-3**
+  
+  同理Stage-2不仅分割了optimizer state也分割了gradient；Stage-3不仅分割了optimizer state、gradient也分割了Model parameters。他们的配置文件分别是：
+  ```Python
+    stage_2_config = {
+        "train_micro_batch_size_per_gpu": 1,
+        "optimizer": {
+            "type": "Adam",
+            "params": {
+                "lr": 5e-5
+            }
+        },
+        "zero_optimization": {
+            "stage": 2,
+        }
+    }
+     stage_3_config = {
+        "train_micro_batch_size_per_gpu": 1,
+        "optimizer": {
+            "type": "Adam",
+            "params": {
+                "lr": 5e-5
+            }
+        },
+        "zero_optimization": {
+            "stage": 3,
+        }
+    }
+  ```
+  Stage-1,Stage-2,Stage-3虽然有效降低了内存占用但是由于每个GPU上保存着不同的模型参数、梯度、参数状态的数据，因此需要GPU通讯，通信会占用额外的时间、内存以及带宽。DeepSpeed允许我们通过在config文件中添加配置从而记录这些通信数据
+  ```python
+    deepspeed_config = {
+        "train_micro_batch_size_per_gpu": 1,
+        "optimizer": {
+            "type": "Adam",
+            "params": {
+                "lr": 5e-5
+            }
+        },
+        "zero_optimization": {
+            "stage": 0
+        },
+        "comms_logger": {
+            "enabled": True,
+            "verbose": False,
+            "prof_all": True,
+            "debug": False
+        }
+    }
+  ```
+    可以想象stage-0的通信需求最小、Stage-3通信需求最大。
+
+至此，对于DeepSpeed分布式训练基础已经介绍完了，主要涉及了DeepSpeed如何包装模型，如何启动。模型的`Forward()`和`backward()`和`step()`DeepSpeed也提供了相应的接口`outputs = model_engine(input_ids, labels=labels)`、`model_engine.backward(outputs.loss)`、`model_engine.step()` DeepSpeed是非常简单优雅的分布式训练工具。
 
 # 参考：
-https://tinkerd.net/blog/machine-learning/distributed-training/#the-memory-requirements-of-training
+
 
 <!-- # 自动混合精度训练
 https://pytorch.org/tutorials/recipes/recipes/amp_recipe.html
