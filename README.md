@@ -10,8 +10,8 @@
   
   **ddp_torchrun.py** :利用torchrun提供的功能启动分布式训练 （推荐）
 
-* Deepspeed分布式训练：ds_stage_0.py、ds_stage_1.py、ds_stage_2.py、ds_stage_3.py
-
+* Deepspeed分布式训练
+  
 ## 环境
 
 ```
