@@ -136,8 +136,10 @@ pytorch的DDP在每个GPU上都保存了完整的上述数据，这就造成了�
     
 <img src="./assets/ds_mem.png" style="width:450px">
 
+下面我们以Qwen2-1.5B模型为例在1 node*2 V100 32G GPUs上进行实验。
+
 ### DeepSpeed基础
-当使用PyTorch提供的`DistributedDataParallel`接口时我们首先需要初始化进程组`init_process_group()`并利用`torch.multiprocessing`或者`torchrun`等启动命令生成多个进程。然而deepspeed利用`deepspeed.initialize`直接对模型包装，后续所有进程组环境设置、内存优化处理交给deepspeed即可。下面我们以Qwen2-1.5B模型为例在1 node*2 V100 32G GPUs上进行实验。
+当使用PyTorch提供的`DistributedDataParallel`接口时我们首先需要初始化进程组`init_process_group()`并利用`torch.multiprocessing`或者`torchrun`等启动命令生成多个进程。然而deepspeed利用`deepspeed.initialize`直接对模型包装，后续所有进程组环境设置、内存优化处理交给deepspeed即可。
 * Stage-0
 
     ```python
@@ -261,10 +263,12 @@ pytorch的DDP在每个GPU上都保存了完整的上述数据，这就造成了�
   ```
     可以想象stage-0的通信需求最小、Stage-3通信需求最大。
 
-至此，对于DeepSpeed分布式训练基础已经介绍完了，主要涉及了DeepSpeed如何包装模型，如何启动。模型的`Forward()`和`backward()`和`step()`DeepSpeed也提供了相应的接口`outputs = model_engine(input_ids, labels=labels)`、`model_engine.backward(outputs.loss)`、`model_engine.step()` DeepSpeed是非常简单优雅的分布式训练工具。
+至此，对于DeepSpeed分布式训练基础已经介绍完了，主要涉及了DeepSpeed如何包装模型，如何启动。模型的`Forward()`和`backward()`和`step()`DeepSpeed也提供了相应的接口`outputs = model_engine(input_ids, labels=labels)`、`model_engine.backward(outputs.loss)`、`model_engine.step()` DeepSpeed是非常简单优雅的分布式训练工具,除了上述的分布式训练策略外还有`offload`策略充分利用内存和硬盘。
 
 # 参考：
-
+https://huggingface.co/blog/accelerate-deepspeed
+https://www.deepspeed.ai/getting-started/
+https://deepspeed.readthedocs.io/en/latest/initialize.html
 
 <!-- # 自动混合精度训练
 https://pytorch.org/tutorials/recipes/recipes/amp_recipe.html
