@@ -134,7 +134,7 @@ Pytorch提供的分布式计算可以有效利用多GPU资源，但是还是不�
 3. **梯度**：需要为模型每个参数存储梯度值
 4. **中间过程值**：在前向过程中需要存储中间过程值，例如相关性分数矩阵、Decoder Layer之间的输入于输出等。
 
-Pytorch的DDP在每个GPU上都保存了完整的上述数据，这就造成了冗余，Deepspeed就是针对1、2、3来进行优化的。
+Pytorch的DDP在每个GPU上都保存了完整的上述数据，这就造成了冗余，Deepspeed针对1、2、3种冗余数据进行分割存储在不同GPU上，并通过GPU通信进行同步。
     
 <img src="./assets/ds_mem.png" style="width:450px">
 
